@@ -14,7 +14,26 @@ function willExpiredToken(token){
 function refreshAccessToken(req, res){
  const { refreshToken } = req.body;
  const isTokenExpired = willExpiredToken(refreshToken);
- console.log(isTokenExpired);
+ if(isTokenExpired) {
+     res.status(404).send({message: "El refreshToken ha expirado."});
+ }else{
+     const { id } = jwt.decodedToken(refreshToken);
+
+     user.findOne({_id: id}, (err, userStored) => {
+         if(err){
+             res.status(500).sed({message: "Error del servidor"});
+         }else{
+             if(!userStored){
+                 res.status(404).send({message: "Usuario no encontrado"});
+             }else{
+                 res.status(200).send({
+                     accessToken: jwt.createAccessToken(userStored),
+                     refreshToken: refreshToken
+                 });
+             }
+         }
+     });
+ }
 }
 
 module.exports = {
